@@ -4,10 +4,14 @@ import sys
 import struct
 import subprocess
 
-import tkinter
-import tkinter.filedialog
-import tkinter.messagebox
-import tkinter.scrolledtext
+try:
+	import tkinter
+	import tkinter.filedialog
+	import tkinter.messagebox
+	import tkinter.scrolledtext
+except ImportError as e:
+	sys.stderr.write("Need a version of python with TKinter.")
+	raise
 
 import whodunargs
 
@@ -619,12 +623,8 @@ class ArgumentGUIFrame(tkinter.Frame):
 		self.canBtn.grid(column = 0, row = self.gridR)
 		self.goBtn = tkinter.Button(self.myCanvas, text = 'OK', command = lambda: self.actionGo())
 		self.goBtn.grid(column = 1, row = self.gridR)
-		# make a scroll bar
-		#TODO fixme
+		# wrap it up
 		self.myCanvas.pack(side=tkinter.LEFT)
-		mainscr = tkinter.Scrollbar(self, command=self.myCanvas.yview)
-		mainscr.pack(side=tkinter.LEFT, fill='y')
-		self.myCanvas.configure(yscrollcommand = mainscr.set)
 		self.pack()
 	def actionCancel(self):
 		self.master.destroy()
@@ -1336,6 +1336,7 @@ class GuiProgram(whodunargs.StandardProgram):
 		self.name = "guip"
 		self.summary = "Show a helpful gui for a program."
 		self.usage = "python3 guip --prog EXE --arg ARG"
+		self.description = "Build a gui to pick arguments for a program, then run.\nMake sure your version of python has a working version of tkinter."
 		commonProgSetup(self)
 	def idiotCheck(self):
 		if len(self.strOpt.value) == 0:
@@ -1350,6 +1351,7 @@ class GuiSetProgram(whodunargs.StandardProgram):
 		whodunargs.StandardProgram.__init__(self)
 		self.name = "guis"
 		self.summary = "Show a helpful gui for a program set."
+		self.description = "Build a gui to pick arguments for a set of programs, then run.\nMake sure your version of python has a working version of tkinter."
 		self.usage = "python3 guis --prog EXE --arg ARG"
 		commonProgSetup(self)
 	def idiotCheck(self):
