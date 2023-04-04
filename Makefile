@@ -23,11 +23,13 @@ BINDIR = builds/bin_$(PROC_NAME)_linux
 # *******************************************************************
 # super targets
 
-all : alllibs alldoc
+all : alllibs allexes alldoc
 
 alllibs : $(BINDIR)/libwhodun.a
 
-alldoc : doc/html/index.html
+allexes : $(BINDIR)/whodun
+
+alldoc : doc/html/index.html doc/whodun/main.html
 
 clean : 
 	rm -rf $(OBJDIR)
@@ -104,9 +106,51 @@ $(BINDIR)/libwhodun.a : \
 	ar rcs $(BINDIR)/libwhodun.a $(STABLE_OBJDIR)/*.o
 
 # *******************************************************************
+# programs
+# *************************************
+# whodun
+
+PROG_WHODUN_OBJDIR = $(OBJDIR)/programs/whodun
+
+PROG_WHODUN_HEADERS = programs/whodun/whodunmain_programs.h
+
+$(PROG_WHODUN_OBJDIR) : 
+	mkdir -p $(PROG_WHODUN_OBJDIR)
+
+$(PROG_WHODUN_OBJDIR)/whodunmain.o : programs/whodun/whodunmain.cpp $(STABLE_HEADERS) $(UNSTABLE_HEADERS) $(PROG_WHODUN_HEADERS) | $(PROG_WHODUN_OBJDIR)
+	g++ $(COMP_OPTS) -Istable -Iprograms/whodun -c -o $(PROG_WHODUN_OBJDIR)/whodunmain.o programs/whodun/whodunmain.cpp
+$(PROG_WHODUN_OBJDIR)/whodun_main_d2t.o : programs/whodun/whodun_main_d2t.cpp $(STABLE_HEADERS) $(UNSTABLE_HEADERS) $(PROG_WHODUN_HEADERS) | $(PROG_WHODUN_OBJDIR)
+	g++ $(COMP_OPTS) -Istable -Iprograms/whodun -c -o $(PROG_WHODUN_OBJDIR)/whodun_main_d2t.o programs/whodun/whodun_main_d2t.cpp
+$(PROG_WHODUN_OBJDIR)/whodun_main_dconv.o : programs/whodun/whodun_main_dconv.cpp $(STABLE_HEADERS) $(UNSTABLE_HEADERS) $(PROG_WHODUN_HEADERS) | $(PROG_WHODUN_OBJDIR)
+	g++ $(COMP_OPTS) -Istable -Iprograms/whodun -c -o $(PROG_WHODUN_OBJDIR)/whodun_main_dconv.o programs/whodun/whodun_main_dconv.cpp
+$(PROG_WHODUN_OBJDIR)/whodun_main_t2d.o : programs/whodun/whodun_main_t2d.cpp $(STABLE_HEADERS) $(UNSTABLE_HEADERS) $(PROG_WHODUN_HEADERS) | $(PROG_WHODUN_OBJDIR)
+	g++ $(COMP_OPTS) -Istable -Iprograms/whodun -c -o $(PROG_WHODUN_OBJDIR)/whodun_main_t2d.o programs/whodun/whodun_main_t2d.cpp
+$(PROG_WHODUN_OBJDIR)/whodun_main_tconv.o : programs/whodun/whodun_main_tconv.cpp $(STABLE_HEADERS) $(UNSTABLE_HEADERS) $(PROG_WHODUN_HEADERS) | $(PROG_WHODUN_OBJDIR)
+	g++ $(COMP_OPTS) -Istable -Iprograms/whodun -c -o $(PROG_WHODUN_OBJDIR)/whodun_main_tconv.o programs/whodun/whodun_main_tconv.cpp
+
+#TODO
+
+$(BINDIR)/whodun : \
+			$(PROG_WHODUN_OBJDIR)/whodunmain.o \
+			$(PROG_WHODUN_OBJDIR)/whodun_main_d2t.o \
+			$(PROG_WHODUN_OBJDIR)/whodun_main_dconv.o \
+			$(PROG_WHODUN_OBJDIR)/whodun_main_t2d.o \
+			$(PROG_WHODUN_OBJDIR)/whodun_main_tconv.o \
+			$(BINDIR)/libwhodun.a \
+			| $(BINDIR)
+	g++ $(COMP_OPTS) -o $(BINDIR)/whodun -L$(BINDIR) $(PROG_WHODUN_OBJDIR)/*.o -lwhodun $(BASIC_PROG_LIBS)
+
+
+# *******************************************************************
 # documentation
 
 doc/html/index.html : $(STABLE_HEADERS)
 	doxygen Doxyfile > /dev/null
+
+doc/whodun/main.html : $(BINDIR)/whodun
+	mkdir -p doc/whodun/
+	python3 tools/ArgMang.py htmls --prog $(BINDIR)/whodun > doc/whodun/main.html
+	python3 tools/ArgMang.py mans --prog $(BINDIR)/whodun --out ./doc/whodun/ --pref whodun
+
 
 
