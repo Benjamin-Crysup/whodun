@@ -79,7 +79,7 @@ IF %errorlevel% NEQ 0 EXIT /b
 g++ %COMP_OPTS% -Istable -Iunstable -Iprograms\whodun -c -o %PROG_WHODUN_OBJDIR%\whodun_main_tconv.o programs\whodun\whodun_main_tconv.cpp
 IF %errorlevel% NEQ 0 EXIT /b
 
-g++ %COMP_OPTS% -o %BINDIR%\whodun.exe -L%BINDIR% %PROG_WHODUN_OBJDIR%\*.o -lwhodunext -lwhodun %BASIC_PROG_LIBS%
+g++ %COMP_OPTS% -o %BINDIR%\whodun.exe -L%BINDIR% %PROG_WHODUN_OBJDIR%\*.o -lwhodun %BASIC_PROG_LIBS%
 IF %errorlevel% NEQ 0 EXIT /b
 
 REM **************************************************************************
