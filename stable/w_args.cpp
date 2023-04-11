@@ -148,7 +148,12 @@ void StandardProgram::printHelp(OutStream* dumpTgt){
 		ArgumentOption* curOpt = allOptions[i];
 		if(!(curOpt->isCommon)){ continue; }
 		dumpTgt->write("  ");
-		dumpTgt->write(curOpt->name.c_str());
+		if(curOpt->sigils.size()){
+			dumpTgt->write(curOpt->sigils[0].c_str());
+		}
+		else{
+			dumpTgt->write(curOpt->name.c_str());
+		}
 		dumpTgt->write(" : ");
 		dumpTgt->write(curOpt->summary.c_str());
 		dumpTgt->write("\n");
