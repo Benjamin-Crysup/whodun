@@ -5,6 +5,10 @@ SET HEADIR=builds\head_x64_win32
 SET OBJDIR=builds\obj_x64_win32
 SET BINDIR=builds\bin_x64_win32
 
+REM NUSPI
+REM **************************************************************************
+REM basic setup
+
 IF EXIST %HEADIR% RMDIR /S /Q %HEADIR%
 IF EXIST %OBJDIR% RMDIR /S /Q %OBJDIR%
 IF EXIST %BINDIR% RMDIR /S /Q %BINDIR%
@@ -53,10 +57,29 @@ g++ %COMP_OPTS% -Istable -c -o %STABLE_OBJDIR%\w_string_com.o stable\w_string_co
 IF %errorlevel% NEQ 0 EXIT /b
 g++ %COMP_OPTS% -Istable -c -o %STABLE_OBJDIR%\w_string_x64.o stable\w_string_x64.cpp
 IF %errorlevel% NEQ 0 EXIT /b
+g++ %COMP_OPTS% -Istable -c -o %STABLE_OBJDIR%\w_tests.o stable\w_tests.cpp
+IF %errorlevel% NEQ 0 EXIT /b
 g++ %COMP_OPTS% -Istable -c -o %STABLE_OBJDIR%\w_thread.o stable\w_thread.cpp
 IF %errorlevel% NEQ 0 EXIT /b
 
 ar rcs %BINDIR%\libwhodun.a %STABLE_OBJDIR%\*.o
+IF %errorlevel% NEQ 0 EXIT /b
+
+SET STABLE_TEST_OBJDIR=%OBJDIR%\stable_test
+MKDIR %STABLE_TEST_OBJDIR%
+
+g++ %COMP_OPTS% -Istable -Istable_tests -c -o %STABLE_TEST_OBJDIR%\main.o stable_tests\main.cpp
+IF %errorlevel% NEQ 0 EXIT /b
+g++ %COMP_OPTS% -Istable -Istable_tests -c -o %STABLE_TEST_OBJDIR%\test_compress.o stable_tests\test_compress.cpp
+IF %errorlevel% NEQ 0 EXIT /b
+g++ %COMP_OPTS% -Istable -Istable_tests -c -o %STABLE_TEST_OBJDIR%\test_container.o stable_tests\test_container.cpp
+IF %errorlevel% NEQ 0 EXIT /b
+g++ %COMP_OPTS% -Istable -Istable_tests -c -o %STABLE_TEST_OBJDIR%\test_sort.o stable_tests\test_sort.cpp
+IF %errorlevel% NEQ 0 EXIT /b
+g++ %COMP_OPTS% -Istable -Istable_tests -c -o %STABLE_TEST_OBJDIR%\test_string.o stable_tests\test_string.cpp
+IF %errorlevel% NEQ 0 EXIT /b
+
+g++ %COMP_OPTS% -o %BINDIR%\testlibwhodun.exe -L%BINDIR% %STABLE_TEST_OBJDIR%\*.o -lwhodun %BASIC_PROG_LIBS%
 IF %errorlevel% NEQ 0 EXIT /b
 
 REM **************************************************************************
@@ -85,7 +108,8 @@ IF %errorlevel% NEQ 0 EXIT /b
 REM **************************************************************************
 REM documentation?
 
-REM TODO
+MKDIR doc\html
+doxygen Doxyfile > NUL
 
 MKDIR doc\whodun\
 python tools\ArgMang.py htmls --prog %BINDIR%\whodun > doc\whodun\main.html

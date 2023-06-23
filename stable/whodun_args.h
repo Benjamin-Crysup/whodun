@@ -496,7 +496,6 @@ public:
 	
 	/**
 	 * Any additional checks on the arguments.
-	 * @return
 	 */
 	virtual void idiotCheck();
 	
@@ -510,7 +509,6 @@ public:
 	
 	/**
 	 * The part that actually does what the program is supposed to do.
-	 * @return
 	 */
 	virtual void baseRun() = 0;
 	

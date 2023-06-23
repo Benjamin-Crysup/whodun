@@ -91,7 +91,7 @@ WhodunError::WhodunError(const std::exception& toCopy, const char* sourceFile, i
 	numStack = 1;
 	packErrorDescription(WHODUN_ERROR_LEVEL_ERROR, "EXCEPT", sourceFile, sourceLine, toCopy.what(), 0, 0, saveErrors);
 }
-WhodunError::~WhodunError(){}
+WhodunError::~WhodunError() WHODUN_NOEXCEPT {}
 WhodunError& WhodunError::operator=(const WhodunError& toCopy){
 	numStack = toCopy.numStack;
 	for(int i = 0; i<numStack; i++){

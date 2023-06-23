@@ -153,9 +153,11 @@ public:
 	
 	/**
 	 * Pop a thing off the back of this thing.
+	 * @return The memory of the popped thing. Only good until next insert.
 	 */
-	void pop_back(){
+	OfT* pop_back(){
 		curSize--;
+		return at(curSize);
 	}
 	
 	/**The storage space for the data.*/

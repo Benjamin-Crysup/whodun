@@ -117,7 +117,7 @@ public:
 	 */
 	WhodunError(const std::exception& toCopy, const char* sourceFile, int sourceLine);
 	/**Tear down.*/
-	~WhodunError();
+	~WhodunError() WHODUN_NOEXCEPT;
 	/**
 	 * Copy from another error.
 	 * @param toCopy THe error to copy.

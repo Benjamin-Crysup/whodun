@@ -114,6 +114,54 @@ bool operator != (const SizePtrString& strA, const SizePtrString& strB);
  */
 std::ostream& operator<<(std::ostream& os, SizePtrString const & toOut);
 
+/**An allocated string.*/
+class SizePtrStringA{
+public:
+	/**Set up an empty string.*/
+	SizePtrStringA();
+	/**
+	 * Allocate a string of a given length.
+	 * @param length The number of bytes to make space for.
+	 */
+	SizePtrStringA(uintptr_t length);
+	/**
+	 * Allocate a string as a copy of another.
+	 * @param toCopy The string to copy.
+	 */
+	SizePtrStringA(const char* toCopy);
+	/**
+	 * Allocate a string as a copy of another.
+	 * @param toCopy The string to copy.
+	 */
+	SizePtrStringA(SizePtrString toCopy);
+	/**
+	 * Allocate a string as a copy of another.
+	 * @param toCopy The string to copy.
+	 */
+	SizePtrStringA(const SizePtrStringA& toCopy);
+	/**Drop any memory.*/
+	~SizePtrStringA();
+	/**
+	 * Handle assignment.
+	 * @param rhs The value to set to.
+	 * @return this
+	 */
+	SizePtrStringA& operator=(const SizePtrStringA& rhs);
+	/**Can treat this as a SizePtrString.*/
+	operator SizePtrString();
+	
+	/**
+	 * Change the size of the string.
+	 * @param newLen The new size.
+	 */
+	void resize(uintptr_t newLen);
+	
+	/**The actual string.*/
+	SizePtrString text;
+	/**The amount of space allocated for the text.*/
+	uintptr_t alloc;
+};
+
 /**Heavyweight operations for memory.*/
 class MemoryShuttler{
 public:
@@ -131,7 +179,7 @@ public:
 	/**
 	 * Run a memset.
 	 * @param setP The first byte to set.
-	 * @param value The avlue to set to.
+	 * @param value The value to set to.
 	 * @param numBts The number of bytes to set.
 	 */
 	virtual void memset(void* setP, int value, size_t numBts) = 0;
@@ -143,7 +191,26 @@ public:
 	 */
 	virtual void memswap(char* arrA, char* arrB, size_t numBts) = 0;
 	
-	//TODO chunk_stride_set chunk_stride_copy?
+	/**
+	 * Chunky strided set.
+	 * @param setP The first thing to set.
+	 * @param value The value to set it to.
+	 * @param numBts The number of bytes the value takes up.
+	 * @param stride The distance between entries to set in setP.
+	 * @param numEnt The number of things to set in setP.
+	 */
+	virtual void memcsset(void* setP, void* value, size_t numBts, size_t stride, size_t numEnt);
+	
+	/**
+	 * Chunky strided copy.
+	 * @param cpyTo The place to copy to.
+	 * @param cpyFrom The place to copy from.
+	 * @param numBts The number of bytes in each entry.
+	 * @param strideTo The distance between entries in cpyTo.
+	 * @param strideFrom The distance between entries in copyFrom.
+	 * @param numEnt The number of entries to copy.
+	 */
+	virtual void memcscpy(void* cpyTo, const void* cpyFrom, size_t numBts, size_t strideTo, size_t strideFrom, size_t numEnt);
 };
 /**Use the c standard library to shuttle memory.*/
 class StandardMemoryShuttler : public MemoryShuttler{

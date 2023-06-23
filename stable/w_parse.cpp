@@ -63,7 +63,7 @@ CharacterSplitTokenizer::~CharacterSplitTokenizer(){
 uintptr_t CharacterSplitTokenizer::numTokenTypes(){
 	return 2;
 }
-SizePtrString CharacterSplitTokenizer::tokenize(SizePtrString toCut, StructVector<Token>* fillTokens){
+SizePtrString CharacterSplitTokenizer::tokenize(SizePtrString toCut, StructVector<Token>* fillTokens, int isAll){
 	Token curPush;
 	SizePtrString nextCut = toCut;
 	char* findIt = (char*)doMem.memchr(nextCut.txt, splitOn, nextCut.len);
@@ -81,6 +81,15 @@ SizePtrString CharacterSplitTokenizer::tokenize(SizePtrString toCut, StructVecto
 		nextCut.txt = findIt + 1;
 		nextCut.len = (toCut.txt + toCut.len) - nextCut.txt;
 		findIt = (char*)doMem.memchr(nextCut.txt, splitOn, nextCut.len);
+	}
+	if(isAll){
+		curPush.text.txt = nextCut.txt;
+			curPush.text.len = nextCut.len;
+			curPush.numTypes = 1;
+			curPush.types = &typeText;
+			fillTokens->push_back(&curPush);
+		nextCut.txt += nextCut.len;
+		nextCut.len = 0;
 	}
 	return nextCut;
 }
@@ -111,7 +120,7 @@ MultithreadedCharacterSplitTokenizer::~MultithreadedCharacterSplitTokenizer(){
 	delete(huntTasks);
 	delete(patchTasks);
 }
-SizePtrString MultithreadedCharacterSplitTokenizer::tokenize(SizePtrString toCut, StructVector<Token>* fillTokens){
+SizePtrString MultithreadedCharacterSplitTokenizer::tokenize(SizePtrString toCut, StructVector<Token>* fillTokens, int isAll){
 	//set up the hunts
 		std::vector<MultithreadedCharacterSplitHunter*>* huntTasks = (std::vector<MultithreadedCharacterSplitHunter*>*)useForUA;
 		uintptr_t numThread = huntTasks->size();
@@ -159,6 +168,16 @@ SizePtrString MultithreadedCharacterSplitTokenizer::tokenize(SizePtrString toCut
 		SizePtrString remText;
 			remText.txt = toCut.txt + curBaseIndex;
 			remText.len = toCut.len - curBaseIndex;
+		if(isAll){
+			Token curPush;
+			curPush.text.txt = remText.txt;
+				curPush.text.len = remText.len;
+				curPush.numTypes = 1;
+				curPush.types = &typeText;
+				fillTokens->push_back(&curPush);
+			remText.txt += remText.len;
+			remText.len = 0;
+		}
 		return remText;
 }
 
@@ -207,13 +226,13 @@ RegexTokenizer::~RegexTokenizer(){}
 uintptr_t RegexTokenizer::numTokenTypes(){
 	return useRgx->theReg.size();
 }
-SizePtrString RegexTokenizer::tokenize(SizePtrString toCut, StructVector<Token>* fillTokens){
+SizePtrString RegexTokenizer::tokenize(SizePtrString toCut, StructVector<Token>* fillTokens, int isAll){
 	Token curPush;
 	SizePtrString nextCut = toCut;
 	while(nextCut.len){
-		//TODO fix this to cut on certainty only
 		intptr_t longMat = useRgx->longMatchLength(nextCut, &(curPush.numTypes), &(curPush.types));
-		if(longMat < 0){ break; }
+		if(longMat <= 0){ break; } //will not take errors, will not take empty tokens
+		if((!isAll) && ((uintptr_t)longMat == nextCut.len)){ break; } //not sure if it's all
 		curPush.text.txt = nextCut.txt;
 		curPush.text.len = longMat;
 		fillTokens->push_back(&curPush);

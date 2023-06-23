@@ -169,14 +169,14 @@ public:
 	void joinIt();
 	/**
 	 * Actually run the stupid thing, and wait for it to finish.
-	 * @param inPool The pool to run in.
+	 * @param inPool The pool to run in. If null, will run in the current thread.
 	 * @param startI The index to start at.
 	 * @param endI The index to end at.
 	 */
 	void doIt(ThreadPool* inPool, uintptr_t startI, uintptr_t endI);
 	/**
 	 * Actually run the stupid thing, and wait for it to finish.
-	 * @param inPool The pool to run in.
+	 * @param inPool The pool to run in. If null, will run in the current thread.
 	 */
 	void doIt(ThreadPool* inPool);
 	/**Run the stupid thing in one thread.*/
@@ -235,97 +235,6 @@ public:
 	int anyErrors;
 	/**The next index waiting to go.*/
 	uintptr_t nextIndex;
-};
-
-/**A nested for loop, where the inner loop iteration count changes.*/
-class ParallelRaggedNestedForLoop{
-public:
-	/**
-	 * Set up.
-	 * @param numThread The number of threads to use.
-	 */
-	ParallelRaggedNestedForLoop(uintptr_t numThread);
-	/**Allow subclasses to tear down.*/
-	virtual ~ParallelRaggedNestedForLoop();
-	/**
-	 * Start running the stupid thing.
-	 * @param inPool The pool to run in.
-	 * @param numOuter The number of outer loop iterations.
-	 * @param innerLens The number of inner loop iterations for each outer loop.
-	 */
-	void startIt(ThreadPool* inPool, uintptr_t numOuter, uintptr_t* innerLens);
-	/**
-	 * Wait for the stupid thing to finish.
-	 */
-	void joinIt();
-	/**
-	 * Actually run the stupid thing, and wait for it to finish.
-	 * @param inPool The pool to run in.
-	 * @param numOuter The number of outer loop iterations.
-	 * @param innerLens The number of inner loop iterations for each outer loop.
-	 */
-	void doIt(ThreadPool* inPool, uintptr_t numOuter, uintptr_t* innerLens);
-	/**
-	 * Run the stupid thing in one thread.
-	 * @param numOuter The number of outer loop iterations.
-	 * @param innerLens The number of inner loop iterations for each outer loop.
-	 */
-	void doIt(uintptr_t numOuter, uintptr_t* innerLens);
-	/**
-	 * Run a range of indices.
-	 * @param threadInd The thread this is for.
-	 * @param forI The outer loop index.
-	 * @param fromJ The inner index to start at.
-	 * @param toJ The inner index to run to.
-	 */
-	virtual void doRange(uintptr_t threadInd, uintptr_t forI, uintptr_t fromJ, uintptr_t toJ);
-	/**
-	 * Run a single index.
-	 * @param threadInd The thread this is for.
-	 * @param outI The outer index to run.
-	 * @param inJ The inner index to run.
-	 */
-	virtual void doSingle(uintptr_t threadInd, uintptr_t outI, uintptr_t inJ) = 0;
-	/**
-	 * Called at the start of doing a range: may be called multiple times a run.
-	 * @param threadInd The thread this is for.
-	 * @param forI The outer loop index.
-	 * @param fromJ The inner index to start at.
-	 * @param toJ The inner index to run to.
-	 */
-	virtual void doRangeStart(uintptr_t threadInd, uintptr_t forI, uintptr_t fromJ, uintptr_t toJ);
-	/**
-	 * Called at the end of doing a range (unless there was an exception): may be called multiple times a run.
-	 * @param threadInd The thread this is for.
-	 * @param forI The outer loop index.
-	 * @param fromJ The inner index to start at.
-	 * @param toJ The inner index to run to.
-	 */
-	virtual void doRangeEnd(uintptr_t threadInd, uintptr_t forI, uintptr_t fromJ, uintptr_t toJ);
-	/**
-	 * Called if doing a range led to an exception. Will be called at most once a run.
-	 * @param threadInd The thread this is for.
-	 * @param forI The outer loop index.
-	 * @param fromJ The inner index to start at.
-	 * @param toJ The inner index to run to.
-	 */
-	virtual void doRangeError(uintptr_t threadInd, uintptr_t forI, uintptr_t fromJ, uintptr_t toJ);
-	/**The threads to run.*/
-	std::vector<JoinableThreadTask*> allUni;
-	/**The natural group size.*/
-	uintptr_t naturalStride;
-	/**The task mutex.*/
-	OSMutex taskMut;
-	/**Whether any of the pieces hit an error: fail faster.*/
-	int anyErrors;
-	/**The next outer index waiting to go.*/
-	uintptr_t nextI;
-	/**The next inner index waiting to go.*/
-	uintptr_t nextJ;
-	/**The number of outer indices to go.*/
-	uintptr_t numOut;
-	/**The list of inner indices.*/
-	uintptr_t* numIn;
 };
 
 /**Do memory opertions in threads.*/

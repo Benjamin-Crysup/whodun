@@ -8,7 +8,7 @@
 #include "whodun_math_constants.h"
 
 namespace whodun {
-//TODO
+//...
 };
 
 using namespace whodun;
@@ -184,9 +184,11 @@ double StatisticalFunctions::logOnePlus(double forVal){
 }
 double StatisticalFunctions::logOnePlusT(double forVal, double useEpsilon){
 	#ifdef C99_FALLBACK
-		//need to do this better
-		return log(1 + forVal);
-		//TODO
+		//https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+		//WARNING: IEEE weirdness, do not use -Ofast; this may not be right
+		double sumV = 1.0 + forVal;
+		if(sumV == 1.0){ return forVal; }
+		return log(sumV) * forVal / (sumV - 1.0);
 	#else
 		return log1p(forVal);
 	#endif

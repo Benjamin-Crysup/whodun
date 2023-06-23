@@ -12,6 +12,12 @@
 
 namespace whodun {
 
+#if __cplusplus >= 201103L
+#define WHODUN_NOEXCEPT noexcept
+#else
+#define WHODUN_NOEXCEPT throw()
+#endif
+
 /**iostream is a mess.*/
 class OutStream{
 public:

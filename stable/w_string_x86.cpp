@@ -22,6 +22,7 @@ size_t whodun::memspn(const char* str1, size_t numB1, const char* str2, size_t n
 		}
 		return curCS;
 		wasGut:
+		;
 	}
 	return numB1;
 }
@@ -33,7 +34,7 @@ char* whodun::memmem(const char* str1, size_t numB1, const char* str2, size_t nu
 	size_t maxCheck = (numB1 - numB2) + 1;
 	for(size_t curCS = 0; curCS < maxCheck; curCS++){
 		if(memcmp(str1+curCS, str2, numB2) == 0){
-			return str1+curCS;
+			return (char*)(str1+curCS);
 		}
 	}
 	return 0;

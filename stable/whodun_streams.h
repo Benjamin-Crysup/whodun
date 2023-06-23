@@ -81,8 +81,6 @@ class MemoryOutStream : public OutStream{
 	std::vector<char> saveArea;
 };
 
-//TODO Buffered
-
 };
 
 #endif

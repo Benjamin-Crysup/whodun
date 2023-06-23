@@ -40,10 +40,11 @@ public:
 	/**
 	 * Cut a string up into tokens.
 	 * @param toCut The string to cut up.
-	 * @param fillTokens The place to put the tokens.
-	 * @return Any text that did not fit into a token, for one reason or another.
+	 * @param fillTokens The place to put the tokens. Whether empty tokens are possible depends on the tokenizer.
+	 * @param isAll Whether the input text has nothing following: useful for streams.
+	 * @return Any text that did not fit into a token (if isAll is 1, will be empty).
 	 */
-	virtual SizePtrString tokenize(SizePtrString toCut, StructVector<Token>* fillTokens) = 0;
+	virtual SizePtrString tokenize(SizePtrString toCut, StructVector<Token>* fillTokens, int isAll) = 0;
 };
 
 /**Split into tokens based on a character: token type 0 is the delimiter, token type 1 is the text.*/
@@ -57,7 +58,7 @@ public:
 	/**Clean up*/
 	~CharacterSplitTokenizer();
 	uintptr_t numTokenTypes();
-	SizePtrString tokenize(SizePtrString toCut, StructVector<Token>* fillTokens);
+	SizePtrString tokenize(SizePtrString toCut, StructVector<Token>* fillTokens, int isAll);
 	/**The character to split on.*/
 	char splitOn;
 	/**The string method.*/
@@ -80,7 +81,7 @@ public:
 	MultithreadedCharacterSplitTokenizer(char onChar, uintptr_t numThread, ThreadPool* mainPool);
 	/**Clean up*/
 	~MultithreadedCharacterSplitTokenizer();
-	SizePtrString tokenize(SizePtrString toCut, StructVector<Token>* fillTokens);
+	SizePtrString tokenize(SizePtrString toCut, StructVector<Token>* fillTokens, int isAll);
 	/**The thread pool to use.*/
 	ThreadPool* usePool;
 	/**The actual set of things to run.*/
@@ -100,7 +101,7 @@ public:
 	/**Clean up*/
 	~RegexTokenizer();
 	uintptr_t numTokenTypes();
-	SizePtrString tokenize(SizePtrString toCut, StructVector<Token>* fillTokens);
+	SizePtrString tokenize(SizePtrString toCut, StructVector<Token>* fillTokens, int isAll);
 	
 	/**The regex set to use.*/
 	RegexSet* useRgx;

@@ -15,16 +15,6 @@ public:
 	uintptr_t threadInd;
 };
 
-/**Manages threading for a parallel for loop.*/
-class ParallelRaggedNestedForLoopTask : public JoinableThreadTask{
-public:
-	void doTask();
-	/**The main loop.*/
-	ParallelRaggedNestedForLoop* mainLoop;
-	/**The thread this is for.*/
-	uintptr_t threadInd;
-};
-
 /**Actually do memcpy.*/
 class ThreadedMemCopyLoop : public ParallelForLoop{
 public:
@@ -257,13 +247,15 @@ void ThreadPool::drainIn(){
 }
 
 void ParallelForLoopTask::doTask(){
+	uintptr_t scaleStride = mainLoop->naturalStride * mainLoop->allUni.size();
+	
 	mainLoop->taskMut.lock();
 	
 	doItAgain:
 	if(mainLoop->anyErrors == 0){
 		uintptr_t curStartI = mainLoop->nextIndex;
 		if(curStartI < mainLoop->endIndex){
-			uintptr_t curEndI = curStartI + mainLoop->naturalStride;
+			uintptr_t curEndI = curStartI + scaleStride;
 				curEndI = std::min(curEndI, mainLoop->endIndex);
 			mainLoop->nextIndex = curEndI;
 			mainLoop->taskMut.unlock();
@@ -340,92 +332,6 @@ void ParallelForLoop::doRange(uintptr_t threadInd, uintptr_t fromI, uintptr_t to
 void ParallelForLoop::doRangeStart(uintptr_t threadInd, uintptr_t fromI, uintptr_t toI){}
 void ParallelForLoop::doRangeEnd(uintptr_t threadInd, uintptr_t fromI, uintptr_t toI){}
 void ParallelForLoop::doRangeError(uintptr_t threadInd, uintptr_t fromI, uintptr_t toI){}
-
-void ParallelRaggedNestedForLoopTask::doTask(){
-	mainLoop->taskMut.lock();
-	
-	doItAgain:
-	if(mainLoop->anyErrors == 0){
-		uintptr_t curStartI = mainLoop->nextI;
-		if(curStartI < mainLoop->numOut){
-			uintptr_t curStartJ = mainLoop->nextJ;
-			uintptr_t curNumJ = mainLoop->numIn[curStartI];
-			uintptr_t curEndJ = curStartJ + mainLoop->naturalStride;
-			if(curEndJ >= curNumJ){
-				curEndJ = curNumJ;
-				mainLoop->nextI = curStartI + 1;
-				mainLoop->nextJ = 0;
-			}
-			else{
-				mainLoop->nextJ = curEndJ;
-			}
-			mainLoop->taskMut.unlock();
-			
-			mainLoop->doRange(threadInd, curStartI, curStartJ, curEndJ);
-			
-			mainLoop->taskMut.lock();
-			goto doItAgain;
-		}
-	}
-	
-	mainLoop->taskMut.unlock();
-}
-
-ParallelRaggedNestedForLoop::ParallelRaggedNestedForLoop(uintptr_t numThread){
-	allUni.resize(numThread);
-	for(uintptr_t i = 0; i<numThread; i++){
-		ParallelRaggedNestedForLoopTask* curT = new ParallelRaggedNestedForLoopTask();
-		curT->mainLoop = this;
-		curT->threadInd = i;
-		allUni[i] = curT;
-	}
-}
-ParallelRaggedNestedForLoop::~ParallelRaggedNestedForLoop(){
-	deleteAll(&allUni);
-}
-void ParallelRaggedNestedForLoop::startIt(ThreadPool* inPool, uintptr_t numOuter, uintptr_t* innerLens){
-	numOut = numOuter;
-	numIn = innerLens;
-	anyErrors = 0;
-	nextI = 0;
-	nextJ = 0;
-	for(uintptr_t i = 0; i<allUni.size(); i++){
-		allUni[i]->reset();
-	}
-	inPool->addTasks(allUni.size(), (JoinableThreadTask**)&(allUni[0]));
-}
-void ParallelRaggedNestedForLoop::joinIt(){
-	joinTasks(allUni.size(), (JoinableThreadTask**)&(allUni[0]));
-}
-void ParallelRaggedNestedForLoop::doIt(ThreadPool* inPool, uintptr_t numOuter, uintptr_t* innerLens){
-	startIt(inPool, numOuter, innerLens);
-	joinIt();
-}
-void ParallelRaggedNestedForLoop::doIt(uintptr_t numOuter, uintptr_t* innerLens){
-	numOut = numOuter;
-	numIn = innerLens;
-	for(uintptr_t i = 0; i<numOut; i++){
-		doRange(0, i, 0, numIn[i]);
-	}
-}
-void ParallelRaggedNestedForLoop::doRange(uintptr_t threadInd, uintptr_t forI, uintptr_t fromJ, uintptr_t toJ){
-	doRangeStart(threadInd, forI, fromJ, toJ);
-	try{
-		for(uintptr_t i = fromJ; i<toJ; i++){
-			doSingle(threadInd, forI, i);
-		}
-	} catch(std::exception& err){
-		taskMut.lock();
-			anyErrors = 1;
-		taskMut.unlock();
-		doRangeError(threadInd, forI, fromJ, toJ);
-		throw;
-	}
-	doRangeEnd(threadInd, forI, fromJ, toJ);
-}
-void ParallelRaggedNestedForLoop::doRangeStart(uintptr_t threadInd, uintptr_t forI, uintptr_t fromJ, uintptr_t toJ){}
-void ParallelRaggedNestedForLoop::doRangeEnd(uintptr_t threadInd, uintptr_t forI, uintptr_t fromJ, uintptr_t toJ){}
-void ParallelRaggedNestedForLoop::doRangeError(uintptr_t threadInd, uintptr_t forI, uintptr_t fromJ, uintptr_t toJ){}
 
 ThreadedMemCopyLoop::ThreadedMemCopyLoop(uintptr_t numThread) : ParallelForLoop(numThread){
 	startIndex = 0;

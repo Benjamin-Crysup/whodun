@@ -500,7 +500,7 @@ uintptr_t DelimitedTableReader::read(TextTable* toStore, uintptr_t numRows){
 		while(1){
 			//find the tokens
 				saveRowS.clear();
-				remText = rowSplitter->tokenize(toSizePtr(&(toStore->saveText)), &saveRowS);
+				remText = rowSplitter->tokenize(toSizePtr(&(toStore->saveText)), &saveRowS, 0);
 			//if have hit eof, add some tokens
 				if(haveHitEOF){
 					Token pushT;
@@ -596,7 +596,7 @@ void DelimitedTableReadTask::doTask(){
 		for(uintptr_t i = firstRI; i<endRI; i++){
 			saveColS.clear();
 			SizePtrString curLine = forRead->saveRowS[2*i]->text;
-			SizePtrString remText = forRead->colSplitter->tokenize(curLine, &saveColS);
+			SizePtrString remText = forRead->colSplitter->tokenize(curLine, &saveColS, 0);
 			uintptr_t numCol = saveColS.size() / 2;
 			for(uintptr_t j = 0; j<numCol; j++){
 				colCellTexts.push_back(saveColS[2*j]->text);

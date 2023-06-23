@@ -60,6 +60,26 @@ public:
 	}
 };
 
+/**Compare tuples of things using the default less than.*/
+template<typename T,unsigned int S>
+class PODLessTupleComparator : public PODComparator{
+public:
+	uintptr_t itemSize(){
+		return S * sizeof(T);
+	}
+	bool compare(const void* itemA, const void* itemB){
+		const T* realA = (const T*)itemA;
+		const T* realB = (const T*)itemB;
+		for(uintptr_t i = 0; i<S; i++){
+			if(*realA < *realB){ return 1; }
+			if(*realB < *realA){ return 0; }
+			realA++;
+			realB++;
+		}
+		return 0;
+	}
+};
+
 /**Options for sorting data.*/
 class PODSortOptions{
 public:

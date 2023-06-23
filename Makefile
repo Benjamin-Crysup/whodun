@@ -23,11 +23,13 @@ BINDIR = builds/bin_$(PROC_NAME)_linux
 # *******************************************************************
 # super targets
 
-all : alllibs allexes alldoc
+all : alllibs allexes alldoc alltests
 
 alllibs : $(BINDIR)/libwhodun.a
 
 allexes : $(BINDIR)/whodun
+
+alltests : $(BINDIR)/testlibwhodun
 
 alldoc : doc/html/index.html doc/whodun/main.html
 
@@ -81,10 +83,10 @@ $(STABLE_OBJDIR)/w_string_com.o : stable/w_string_com.cpp $(STABLE_HEADERS) | $(
 	g++ $(COMP_OPTS) -Istable -c -o $(STABLE_OBJDIR)/w_string_com.o stable/w_string_com.cpp
 $(STABLE_OBJDIR)/w_string_$(PROC_NAME).o : stable/w_string_$(PROC_NAME).cpp $(STABLE_HEADERS) | $(STABLE_OBJDIR)
 	g++ $(COMP_OPTS) -Istable -c -o $(STABLE_OBJDIR)/w_string_$(PROC_NAME).o stable/w_string_$(PROC_NAME).cpp
+$(STABLE_OBJDIR)/w_tests.o : stable/w_tests.cpp $(STABLE_HEADERS) | $(STABLE_OBJDIR)
+	g++ $(COMP_OPTS) -Istable -c -o $(STABLE_OBJDIR)/w_tests.o stable/w_tests.cpp
 $(STABLE_OBJDIR)/w_thread.o : stable/w_thread.cpp $(STABLE_HEADERS) | $(STABLE_OBJDIR)
 	g++ $(COMP_OPTS) -Istable -c -o $(STABLE_OBJDIR)/w_thread.o stable/w_thread.cpp
-
-#TODO
 
 $(BINDIR)/libwhodun.a : \
 			$(STABLE_OBJDIR)/w_args.o \
@@ -101,9 +103,39 @@ $(BINDIR)/libwhodun.a : \
 			$(STABLE_OBJDIR)/w_stat_util_com.o \
 			$(STABLE_OBJDIR)/w_streams.o \
 			$(STABLE_OBJDIR)/w_string_com.o $(STABLE_OBJDIR)/w_string_$(PROC_NAME).o \
+			$(STABLE_OBJDIR)/w_tests.o \
 			$(STABLE_OBJDIR)/w_thread.o \
 			| $(BINDIR)
 	ar rcs $(BINDIR)/libwhodun.a $(STABLE_OBJDIR)/*.o
+
+STABLE_TEST_OBJDIR = $(OBJDIR)/stable_test
+
+STABLE_TEST_HEADERS = stable_tests/tests.h
+
+$(STABLE_TEST_OBJDIR) : 
+	mkdir -p $(STABLE_TEST_OBJDIR)
+
+$(STABLE_TEST_OBJDIR)/main.o : stable_tests/main.cpp $(STABLE_HEADERS) $(STABLE_TEST_HEADERS) | $(STABLE_TEST_OBJDIR)
+	g++ $(COMP_OPTS) -Istable -Istable_tests -c -o $(STABLE_TEST_OBJDIR)/main.o stable_tests/main.cpp
+$(STABLE_TEST_OBJDIR)/test_compress.o : stable_tests/test_compress.cpp $(STABLE_HEADERS) $(STABLE_TEST_HEADERS) | $(STABLE_TEST_OBJDIR)
+	g++ $(COMP_OPTS) -Istable -Istable_tests -c -o $(STABLE_TEST_OBJDIR)/test_compress.o stable_tests/test_compress.cpp
+$(STABLE_TEST_OBJDIR)/test_container.o : stable_tests/test_container.cpp $(STABLE_HEADERS) $(STABLE_TEST_HEADERS) | $(STABLE_TEST_OBJDIR)
+	g++ $(COMP_OPTS) -Istable -Istable_tests -c -o $(STABLE_TEST_OBJDIR)/test_container.o stable_tests/test_container.cpp
+$(STABLE_TEST_OBJDIR)/test_sort.o : stable_tests/test_sort.cpp $(STABLE_HEADERS) $(STABLE_TEST_HEADERS) | $(STABLE_TEST_OBJDIR)
+	g++ $(COMP_OPTS) -Istable -Istable_tests -c -o $(STABLE_TEST_OBJDIR)/test_sort.o stable_tests/test_sort.cpp
+$(STABLE_TEST_OBJDIR)/test_string.o : stable_tests/test_string.cpp $(STABLE_HEADERS) $(STABLE_TEST_HEADERS) | $(STABLE_TEST_OBJDIR)
+	g++ $(COMP_OPTS) -Istable -Istable_tests -c -o $(STABLE_TEST_OBJDIR)/test_string.o stable_tests/test_string.cpp
+
+$(BINDIR)/testlibwhodun : \
+			$(STABLE_TEST_OBJDIR)/main.o \
+			$(STABLE_TEST_OBJDIR)/test_compress.o \
+			$(STABLE_TEST_OBJDIR)/test_container.o \
+			$(STABLE_TEST_OBJDIR)/test_sort.o \
+			$(STABLE_TEST_OBJDIR)/test_string.o \
+			$(BINDIR)/libwhodun.a \
+			| $(BINDIR)
+	g++ $(COMP_OPTS) -o $(BINDIR)/testlibwhodun -L$(BINDIR) $(STABLE_TEST_OBJDIR)/*.o -lwhodun $(BASIC_PROG_LIBS)
+
 
 # *******************************************************************
 # programs

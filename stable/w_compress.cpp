@@ -235,7 +235,7 @@ void GZipCompressionMethod::compressData(SizePtrString theData){
 	compDataT[6] = 0;
 	compDataT[7] = 0;
 	compDataT[8] = 0;
-	compDataT[9] = 255;
+	compDataT[9] = 0xFF;
 	//calculate the crc
 	uint32_t crcV = 0xffffffffL;
 	for(uintptr_t n = 0; n<theData.len; n++){

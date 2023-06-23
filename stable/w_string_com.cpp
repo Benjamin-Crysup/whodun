@@ -72,7 +72,9 @@ double whodun::parseFloat(SizePtrString toParse){
 			int curV = curParse.txt[0];
 			if((curV == '.') || (curV == 'e') || (curV == 'E')){ break; }
 			if((curV < '0') || (curV > '9')){ throw std::runtime_error("Invalid digit passed to parse float."); }
-			manval = (10*manval) + curV;
+			manval = (10*manval) + (curV - '0');
+			curParse.len--;
+			curParse.txt++;
 		}
 	//read off the fractional part
 		if(curParse.len && (curParse.txt[0] == '.')){
@@ -83,8 +85,10 @@ double whodun::parseFloat(SizePtrString toParse){
 				int curV = curParse.txt[0];
 				if((curV == 'e') || (curV == 'E')){ break; }
 				if((curV < '0') || (curV > '9')){ throw std::runtime_error("Invalid digit passed to parse float."); }
-				manval = manval + (curMulV * curV);
+				manval = manval + (curMulV * (curV - '0'));
 				curMulV = 0.1 * curMulV;
+				curParse.len--;
+				curParse.txt++;
 			}
 		}
 	//read the exponent
@@ -127,8 +131,71 @@ std::ostream& whodun::operator<<(std::ostream& os, SizePtrString const & toOut){
 	return os;
 }
 
+SizePtrStringA::SizePtrStringA(){
+	text.len = 0;
+	text.txt = (char*)malloc(text.len);
+	alloc = text.len;
+}
+SizePtrStringA::SizePtrStringA(uintptr_t length){
+	text.len = length;
+	text.txt = (char*)malloc(text.len);
+	alloc = text.len;
+}
+SizePtrStringA::SizePtrStringA(const char* toCopy){
+	text.len = strlen(toCopy);
+	text.txt = (char*)malloc(text.len);
+	alloc = text.len;
+	memcpy(text.txt, toCopy, text.len);
+}
+SizePtrStringA::SizePtrStringA(SizePtrString toCopy){
+	text.len = toCopy.len;
+	text.txt = (char*)malloc(text.len);
+	alloc = text.len;
+	memcpy(text.txt, toCopy.txt, text.len);
+}
+SizePtrStringA::SizePtrStringA(const SizePtrStringA& toCopy){
+	text.len = toCopy.text.len;
+	text.txt = (char*)malloc(text.len);
+	alloc = text.len;
+	memcpy(text.txt, toCopy.text.txt, text.len);
+}
+SizePtrStringA::~SizePtrStringA(){
+	free(text.txt);
+}
+SizePtrStringA& SizePtrStringA::operator=(const SizePtrStringA& rhs){
+	text.len = rhs.text.len;
+	memcpy(text.txt, rhs.text.txt, text.len);
+	return *this;
+}
+SizePtrStringA::operator SizePtrString(){
+	return text;
+}
+void SizePtrStringA::resize(uintptr_t newLen){
+	if(newLen > alloc){
+		alloc = 2*alloc;
+		if(alloc < newLen){ alloc = newLen; }
+		text.txt = (char*)realloc(text.txt, alloc);
+	}
+}
+
 MemoryShuttler::MemoryShuttler(){}
 MemoryShuttler::~MemoryShuttler(){}
+void MemoryShuttler::memcsset(void* setP, void* value, size_t numBts, size_t stride, size_t numEnt){
+	char* rsp = (char*)setP;
+	for(size_t i = 0; i<numEnt; i++){
+		memcpy(rsp, value, numBts);
+		rsp += stride;
+	}
+}
+void MemoryShuttler::memcscpy(void* cpyTo, const void* cpyFrom, size_t numBts, size_t strideTo, size_t strideFrom, size_t numEnt){
+	char* rct = (char*)cpyTo;
+	const char* rcf = (const char*)cpyFrom;
+	for(size_t i = 0; i<numEnt; i++){
+		memcpy(rct, rcf, numBts);
+		rct += strideTo;
+		rcf += strideFrom;
+	}
+}
 
 StandardMemoryShuttler::StandardMemoryShuttler(){}
 StandardMemoryShuttler::~StandardMemoryShuttler(){}
